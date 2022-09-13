@@ -9,11 +9,12 @@ namespace Mylib {
 // different data_type
 template <typename T> class my_vector {
 private:
-  T *arr;
 
   // Variable to store the current capacity
   // of the vector
   size_t capacity;
+
+  T *arr;
 
   // Variable to store the length of the
   // vector
@@ -21,9 +22,10 @@ private:
   void ensure_cap() {
     if (length == capacity) {
       std::cout << "ensure start --" << std::endl;
-
+      
       T *old = arr;
-      arr = new T[capacity = capacity * 2];
+      arr = new T[capacity = (capacity == 0 ? 1 : capacity * 2)];
+
       copy(old, old + length, arr);
 
       delete[] old;
@@ -32,7 +34,7 @@ private:
   }
 
 public:
-  my_vector(size_t size = 1) : capacity(size), arr(new T[size]), length(0) {}
+  my_vector(size_t size = 0) : capacity(size), arr(size > 0 ? new T[size] : nullptr), length(0) {}
   // Function that returns the number of
   // elements in array after pushing the data
   // TODO: const T& 类型满足T相关类型：const T, T, T&输入
@@ -61,8 +63,7 @@ public:
   // 在模版编程里面叫转发引用，可以完美转发参数类型，左值依然是左值，右值依然是又值
   template <typename... Args> void emplace_back(Args &&...args) {
     ensure_cap();
-    // TODO placement new在已经申请的内存上调用构造函数初始化对象, new (addr)
-    // T(args...)
+    // TODO placement new在已经申请的内存上调用构造函数初始化对象, new (addr) T(args...)
     // TODO 使用std::forward完美转发，防止引用坍缩，造成额外拷贝
     new (&arr[length++]) T(std::forward<Args>(args)...);
   }
@@ -70,7 +71,7 @@ public:
     // TODO 不需要强制实现
     return os;
   }
-
+  
   ~my_vector() {
     if (arr != nullptr) {
       std::cout << "delete" << std::endl;
@@ -78,6 +79,7 @@ public:
       arr = nullptr;
     }
   }
+
   // Iterator Class
   class iterator {
   private:
@@ -208,21 +210,20 @@ int main() {
 
   c.emplace_back(1);
   display_vector(c);
-  {
-    // test emplace back,
-    my_vector<TestA> vec;
-    // 这里会调用赋值构造函数
-    cout << "push_back element in vector vec : " << std::endl;
 
-    vec.push_back(TestA{1, 2});
+  // test emplace back,
+  my_vector<TestA> vec;
+  // 这里会调用赋值构造函数
+  cout << "push_back element in vector vec : " << std::endl;
 
-    cout << "emplace_back Element in vector vec : " << std::endl;
-    // 不会调用赋值构造函数
-    // TODO, 扩容情况下这里还是会打印 copy cons, 但是这是ensure_cap中的copy
-    // api引发的行为
-    vec.emplace_back(1, 2);
-    vec.emplace_back(1, 2);
-  }
+  vec.push_back(TestA{1, 2});
+
+  cout << "emplace_back Element in vector vec : " << std::endl;
+  // 不会调用赋值构造函数
+  // TODO, 扩容情况下这里还是会打印 copy cons, 但是这是ensure_cap中的copy
+  // api引发的行为
+  vec.emplace_back(1, 2);
+  vec.emplace_back(1, 2);
 
   return 0;
 }
