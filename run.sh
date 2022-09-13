@@ -1,8 +1,12 @@
 #!/bin/bash
 build_dir=./build
+
+rm -rf $build_dir
+mkdir $build_dir
 cmake_file=./Cmakelists.txt
 excutable_list=()
 suffix=".cpp"
+
 
 if [ ! -f "$cmake_file" ]; then
     touch $cmake_file
